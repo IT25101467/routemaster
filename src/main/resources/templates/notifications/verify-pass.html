@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Pass Scanner &bull; RouteMaster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+
+<!-- Navigation: Frosted Glass -->
+<nav class="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-2.5 group">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:bg-blue-700 transition">
+                        RM
+                    </div>
+                    <span class="text-base font-semibold tracking-tight text-slate-900 group-hover:text-blue-600 transition">RouteMaster</span>
+                </a>
+                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Digital Pass Verification</span>
+            </div>
+            <a href="/station-board" class="text-xs font-medium text-slate-500 hover:text-slate-900 px-3 py-1.5 rounded-xl hover:bg-slate-100/80 transition">&larr; Back to Station Board</a>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-2xl mx-auto py-12 px-4 sm:px-6">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <span class="text-xs bg-blue-50 text-blue-700 font-mono font-medium px-3 py-1 rounded-full">Conductor &amp; Inspector Tool</span>
+        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mt-2">Boarding Pass Authenticator</h1>
+        <p class="text-xs text-slate-500 mt-1">Cryptographic SHA-256 digital token and booking validity verification</p>
+    </div>
+
+    <!-- Verification Search Form Card -->
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-8 mb-8">
+        <form th:action="@{/station-board/verify}" method="post" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Booking Reference or Pass Hash</label>
+                <input type="text" name="query" th:value="${query}" placeholder="e.g. RM-XXXXXXXX or SHA-256 hash"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400" required>
+                <p class="text-xs text-slate-400 mt-1">Scan or type the code printed on the passenger boarding pass</p>
+            </div>
+
+            <button type="submit" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 text-sm transition shadow-sm active:scale-[0.98]">
+                Verify Pass Authenticity &rarr;
+            </button>
+        </form>
+    </div>
+
+    <!-- Verification Result Display -->
+    <div th:if="${result != null}">
+
+        <!-- SUCCESS: Pass Valid -->
+        <div th:if="${result.valid}" class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-8 space-y-6">
+            <div class="flex items-center space-x-3 pb-4 border-b border-slate-100">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold tracking-tight text-emerald-900">Pass Verified &bull; Travel Authorized</h3>
+                    <p class="text-xs text-emerald-700" th:text="${result.message}"></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                    <span class="block text-slate-400 font-medium uppercase tracking-wider">Booking Ref</span>
+                    <span class="code-font text-blue-600 font-bold text-sm" th:text="${result.bookingRef}"></span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 font-medium uppercase tracking-wider">Booking Status</span>
+                    <span class="font-semibold text-slate-900 text-sm" th:text="${result.bookingStatus}"></span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 font-medium uppercase tracking-wider">Passenger Name</span>
+                    <span class="font-semibold text-slate-900 text-sm" th:text="${result.passengerName}"></span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 font-medium uppercase tracking-wider">NIC / Identity</span>
+                    <span class="code-font font-medium text-slate-900 text-sm" th:text="${result.nic}"></span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 font-medium uppercase tracking-wider">Allocated Seats</span>
+                    <div class="flex flex-wrap gap-1.5 mt-0.5">
+                        <span th:each="s : ${result.seatNos}" class="bg-slate-100 code-font px-2 py-0.5 rounded text-xs text-slate-800 font-bold" th:text="${s}"></span>
+                    </div>
+                </div>
+                <div>
+                    <span class="block text-slate-400 font-medium uppercase tracking-wider">Scheduled Departure</span>
+                    <span class="text-slate-800 text-xs font-medium" th:text="${result.tripDate + ' @ ' + result.departureTime}"></span>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 text-xs">
+                <span class="block text-slate-400 uppercase tracking-wider font-semibold">Cryptographic SHA-256 Signature</span>
+                <span class="code-font text-slate-500 break-all text-xs" th:text="${result.tokenHash}"></span>
+            </div>
+        </div>
+
+        <!-- FAILURE: Pass Invalid or Revoked -->
+        <div th:if="${!result.valid}" class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-rose-100 p-8 space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold tracking-tight text-rose-900">Verification Failed &bull; Boarding Denied</h3>
+                    <p class="text-xs text-rose-700 mt-0.5" th:text="${result.message}"></p>
+                </div>
+            </div>
+
+            <div th:if="${result.bookingRef != null}" class="bg-rose-50/60 border border-rose-100 rounded-xl p-4 text-xs space-y-1">
+                <div>Booking Reference: <strong class="code-font" th:text="${result.bookingRef}"></strong></div>
+                <div>Passenger: <span th:text="${result.passengerName}"></span> (NIC: <span th:text="${result.nic}"></span>)</div>
+                <div>Status: <span class="text-rose-700 font-bold" th:text="${result.bookingStatus}"></span></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

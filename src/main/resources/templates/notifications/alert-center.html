@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Command Center &bull; RouteMaster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+
+<!-- Frosted Navigation Bar -->
+<nav class="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-2.5 group">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:bg-blue-700 transition">
+                        RM
+                    </div>
+                    <span class="text-base font-semibold tracking-tight text-slate-900 group-hover:text-blue-600 transition">RouteMaster</span>
+                </a>
+                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Broadcast Center</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-1 text-xs font-medium">
+                <a href="/booking/search" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F1: Book</a>
+                <a href="/fleet/buses" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F2: Fleet</a>
+                <a href="/operations/trips" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F3: Operations</a>
+                <a href="/support/tickets" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F4: Support</a>
+                <a href="/finance/dashboard" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F5: Finance</a>
+                <a href="/station-board" class="bg-blue-50 text-blue-700 px-3.5 py-2 rounded-xl font-semibold shadow-xs">F6: Live Board</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 gap-4">
+        <div>
+            <div class="flex items-center space-x-2.5">
+                <a href="/station-board" class="text-xs text-slate-400 hover:text-slate-600 transition">&larr; Public Station Board</a>
+                <span class="text-slate-300">/</span>
+                <span class="text-xs font-medium text-slate-600">Admin Command</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 mt-1">Alert &amp; Broadcast Hub</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Owner: <span class="font-medium text-slate-700">Chathmal P.D.D.</span> (IT25100115) &bull; Operational Disruption &amp; Terminal Broadcast Dispatcher
+            </p>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <a href="/station-board" class="text-xs rounded-full bg-white hover:bg-slate-100 text-slate-700 font-medium px-4 py-2 border border-slate-200/60 transition shadow-xs flex items-center space-x-1.5">
+                <span>View Public Terminal Board</span>
+                <span>&rarr;</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Notification Banners -->
+    <div th:if="${successMessage}" class="mb-6 bg-emerald-50/80 border border-emerald-100 rounded-2xl p-4 text-sm text-emerald-900 font-medium shadow-xs">
+        <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="mb-6 bg-rose-50/80 border border-rose-100 rounded-2xl p-4 text-sm text-rose-900 font-medium shadow-xs">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Broadcasts</span>
+            <div class="text-2xl font-semibold tracking-tight text-slate-900 mt-2" th:text="${activeCount}">0</div>
+            <p class="text-xs text-slate-500 mt-1">Visible on station boards &amp; passenger portals</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Critical / Emergency</span>
+            <div class="text-2xl font-semibold tracking-tight text-rose-600 mt-2" th:text="${emergencyCount}">0</div>
+            <p class="text-xs text-slate-500 mt-1">High-priority terminal alert banners</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Observer Pattern (BR-11)</span>
+            <div class="text-sm font-semibold tracking-tight text-blue-600 mt-2">Active Listener</div>
+            <p class="text-xs text-slate-500 mt-1 mono">TripDelayedEvent &rarr; Passenger Dispatch</p>
+        </div>
+    </div>
+
+    <!-- Broadcast Creator Card -->
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6 mb-10">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+                <h2 class="text-base font-semibold tracking-tight text-slate-900">Dispatch Operational Broadcast</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Publish global terminal advisories or targeted trip disruption notices</p>
+            </div>
+            <span class="bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">F6 Broadcast Engine</span>
+        </div>
+
+        <form th:action="@{/notifications/broadcast}" th:object="${broadcastForm}" method="post" class="mt-6 space-y-5">
+            <!-- Scope Selector (Global vs. Trip-Specific) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Broadcast Scope</label>
+                <div class="grid grid-cols-2 gap-3 max-w-md">
+                    <label class="flex items-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/40">
+                        <input type="radio" th:field="*{broadcastScope}" value="GLOBAL" class="text-blue-600 focus:ring-blue-500" onchange="toggleScope('GLOBAL')" checked>
+                        <div class="ml-3">
+                            <div class="text-xs font-semibold text-slate-900">Global System Alert</div>
+                            <div class="text-[11px] text-slate-500">Public Station Board &amp; All Screens</div>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/40">
+                        <input type="radio" th:field="*{broadcastScope}" value="TRIP" class="text-blue-600 focus:ring-blue-500" onchange="toggleScope('TRIP')">
+                        <div class="ml-3">
+                            <div class="text-xs font-semibold text-slate-900">Trip-Specific Alert</div>
+                            <div class="text-[11px] text-slate-500">Target Passengers on Trip (BR-11)</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Trip Selector (Hidden when GLOBAL) -->
+            <div id="tripSelectorSection" class="hidden">
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Target Scheduled Trip</label>
+                <select th:field="*{tripId}" class="w-full max-w-lg text-sm rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                    <option value="" selected>Select a scheduled departure...</option>
+                    <option th:each="t : ${trips}" th:value="${t.tripId}"
+                            th:text="'Trip #' + ${t.tripId} + ' - ' + (${t.route != null} ? ${t.route.routeName} : 'Express') + ' (' + ${t.tripDate} + ' @ ' + ${t.departureTime} + ')'"></option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Alert Type -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Alert Classification</label>
+                    <select th:field="*{alertType}" class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                        <option value="SYSTEM_BROADCAST">SYSTEM_BROADCAST &bull; General Station Announcement</option>
+                        <option value="TRIP_UPDATE">TRIP_UPDATE &bull; Platform / Schedule Change</option>
+                        <option value="DELAY">DELAY &bull; Operational Disruption (Rule BR-11)</option>
+                        <option value="EMERGENCY">EMERGENCY &bull; Critical Terminal Alert</option>
+                    </select>
+                </div>
+
+                <!-- Channel -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Dispatch Channel</label>
+                    <select th:field="*{channel}" class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+                        <option value="IN_APP">IN_APP &bull; Terminal Board &amp; Web App Banners</option>
+                        <option value="EMAIL">EMAIL &bull; Direct Passenger Notification</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Message Textarea -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Broadcast Message</label>
+                    <span id="charCount" class="text-[11px] text-slate-400 font-mono">0 / 1000</span>
+                </div>
+                <textarea th:field="*{message}" rows="3" required maxlength="1000"
+                          oninput="document.getElementById('charCount').innerText = this.value.length + ' / 1000'"
+                          placeholder="e.g., Attention Passengers: Platform 02 is temporarily relocated to Bay 04 due to technical inspection. All Southern Express departures will board from Bay 04."
+                          class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50/50 p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"></textarea>
+            </div>
+
+            <div class="pt-2 flex items-center justify-end space-x-3">
+                <button type="submit" class="text-xs rounded-full bg-slate-900 hover:bg-slate-800 text-white font-medium px-5 py-2.5 transition shadow-sm flex items-center space-x-2 active:scale-[0.98]">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                    </svg>
+                    <span>Dispatch Live Broadcast</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Broadcasts Table -->
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 overflow-hidden">
+        <div class="px-6 py-5 flex items-center justify-between border-b border-slate-100/80">
+            <div>
+                <h2 class="text-base font-semibold tracking-tight text-slate-900">Broadcast Audit &amp; Active Queue</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Live announcements, passenger disruption alerts, and retraction controls</p>
+            </div>
+            <span class="text-xs font-mono bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
+                Total Records: <span class="font-semibold text-slate-900" th:text="${#lists.size(alerts)}">0</span>
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50/70 text-slate-400 text-xs uppercase font-medium tracking-wider">
+                <tr>
+                    <th class="py-3.5 px-5">ID</th>
+                    <th class="py-3.5 px-5">Type</th>
+                    <th class="py-3.5 px-5">Target Scope</th>
+                    <th class="py-3.5 px-5">Message Content</th>
+                    <th class="py-3.5 px-5">Dispatched At</th>
+                    <th class="py-3.5 px-5">Status</th>
+                    <th class="py-3.5 px-5 text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100/70">
+                <tr th:each="a : ${alerts}" class="hover:bg-slate-50/60 transition">
+                    <td class="py-4 px-5 font-mono text-xs font-semibold text-slate-700" th:text="'#' + ${a.notificationId}">#1</td>
+                    <td class="py-4 px-5 whitespace-nowrap">
+                        <span th:if="${a.alertType != null and a.alertType.name() == 'EMERGENCY'}"
+                              class="bg-rose-50 text-rose-700 text-xs px-2.5 py-1 rounded-full font-semibold inline-flex items-center space-x-1">
+                            <span>🚨</span>
+                            <span>EMERGENCY</span>
+                        </span>
+                        <span th:if="${a.alertType != null and a.alertType.name() == 'DELAY'}"
+                              class="bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-full font-semibold inline-flex items-center space-x-1">
+                            <span>⚠️</span>
+                            <span>DELAY</span>
+                        </span>
+                        <span th:if="${a.alertType != null and a.alertType.name() == 'SYSTEM_BROADCAST'}"
+                              class="bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full font-semibold inline-flex items-center space-x-1">
+                            <span>📢</span>
+                            <span>BROADCAST</span>
+                        </span>
+                        <span th:if="${a.alertType != null and a.alertType.name() == 'TRIP_UPDATE'}"
+                              class="bg-purple-50 text-purple-700 text-xs px-2.5 py-1 rounded-full font-semibold inline-flex items-center space-x-1">
+                            <span>🔄</span>
+                            <span>TRIP UPDATE</span>
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 whitespace-nowrap font-mono text-xs">
+                        <span th:if="${a.bookingRef == 'GLOBAL' or (a.tripId == null and (a.bookingRef == null or a.bookingRef.startsWith('GLOBAL')))}"
+                              class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium">
+                            🌐 GLOBAL
+                        </span>
+                        <span th:if="${a.tripId != null or (a.bookingRef != null and a.bookingRef.startsWith('TRIP-'))}"
+                              class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md font-medium"
+                              th:text="'Trip #' + (${a.tripId != null ? a.tripId : a.bookingRef})">
+                            Trip #10
+                        </span>
+                        <span th:if="${a.bookingRef != null and !a.bookingRef.startsWith('GLOBAL') and !a.bookingRef.startsWith('TRIP-')}"
+                              class="bg-slate-50 text-slate-500 px-2 py-0.5 rounded-md font-medium"
+                              th:text="'Ref: ' + ${a.bookingRef}">
+                            Ref: RM-1234
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 max-w-md">
+                        <div class="text-xs text-slate-800 leading-relaxed font-normal" th:text="${a.message}">
+                            Sample broadcast message details.
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 whitespace-nowrap font-mono text-[11px] text-slate-500"
+                        th:text="${#temporals.format(a.sentAt, 'yyyy-MM-dd HH:mm:ss')}">
+                        2026-09-14 20:00:00
+                    </td>
+                    <td class="py-4 px-5 whitespace-nowrap">
+                        <span th:if="${a.isActive}" class="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-medium inline-block">
+                            Live Active
+                        </span>
+                        <span th:if="${!a.isActive}" class="bg-slate-100 text-slate-500 text-xs px-2.5 py-1 rounded-full font-medium inline-block">
+                            Retracted
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 text-right whitespace-nowrap">
+                        <div class="flex items-center justify-end space-x-2">
+                            <!-- Edit Message Button -->
+                            <button type="button"
+                                    th:data-id="${a.notificationId}"
+                                    th:data-message="${a.message}"
+                                    onclick="openEditAlertModal(this)"
+                                    class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-full transition">
+                                Edit
+                            </button>
+
+                            <!-- Retract Button (Soft-Delete) -->
+                            <form th:if="${a.isActive}" th:action="@{'/notifications/' + ${a.notificationId} + '/retract'}" method="post" class="inline"
+                                  onsubmit="return confirm('Retract this alert immediately? It will be withdrawn from all public screens.');">
+                                <button type="submit" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium px-3 py-1.5 rounded-full transition">
+                                    Retract
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(alerts)}">
+                    <td colspan="7" class="py-12 text-center text-slate-400 text-xs">
+                        No operational alerts dispatched yet. Use the form above to broadcast an announcement.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Edit Alert Message Modal -->
+<div id="editAlertModal" class="fixed inset-0 z-50 hidden bg-slate-900/20 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 max-w-lg w-full p-6 transition-all transform animate-in fade-in zoom-in duration-200">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+                <h3 id="editModalTitle" class="text-lg font-semibold tracking-tight text-slate-900">Edit Alert Message</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Revise announcement content in real-time</p>
+            </div>
+            <button onclick="closeEditAlertModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold p-1">&times;</button>
+        </div>
+
+        <form id="editAlertForm" method="post" class="mt-5 space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Updated Announcement Message</label>
+                <textarea name="message" id="editMessageInput" rows="4" required maxlength="1000"
+                          class="w-full text-sm rounded-xl border border-slate-200 bg-slate-50/50 p-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"></textarea>
+            </div>
+
+            <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-100">
+                <button type="button" onclick="closeEditAlertModal()" class="px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 rounded-full text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition active:scale-[0.98]">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleScope(scope) {
+        const sec = document.getElementById('tripSelectorSection');
+        if (scope === 'TRIP') {
+            sec.classList.remove('hidden');
+        } else {
+            sec.classList.add('hidden');
+        }
+    }
+
+    function openEditAlertModal(btn) {
+        const id = btn.getAttribute('data-id');
+        const msg = btn.getAttribute('data-message');
+        document.getElementById('editModalTitle').innerText = 'Edit Alert #' + id;
+        document.getElementById('editAlertForm').action = '/notifications/' + id + '/edit';
+        document.getElementById('editMessageInput').value = msg;
+        document.getElementById('editAlertModal').classList.remove('hidden');
+    }
+
+    function closeEditAlertModal() {
+        document.getElementById('editAlertModal').classList.add('hidden');
+    }
+</script>
+
+</body>
+</html>
