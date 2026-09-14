@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Support Queue &bull; RouteMaster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+
+<!-- Navigation: Frosted Glass -->
+<nav class="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-2.5 group">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:bg-blue-700 transition">
+                        RM
+                    </div>
+                    <span class="text-base font-semibold tracking-tight text-slate-900 group-hover:text-blue-600 transition">RouteMaster</span>
+                </a>
+                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Customer Support Queue</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-1 text-xs font-medium">
+                <a href="/booking/search" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F1: Book</a>
+                <a href="/fleet/buses" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F2: Fleet</a>
+                <a href="/operations/trips" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F3: Operations</a>
+                <a href="/support/tickets" class="bg-slate-100 text-slate-900 px-3.5 py-2 rounded-xl font-semibold shadow-xs">F4: Support</a>
+                <a href="/finance/dashboard" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F5: Finance</a>
+                <a href="/station-board" class="text-blue-600 bg-blue-50/60 hover:bg-blue-100/60 px-3.5 py-2 rounded-xl transition-all font-semibold">F6: Live Board</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 gap-4">
+        <div>
+            <div class="flex items-center space-x-2.5">
+                <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">Customer Support &amp; Complaints</h1>
+                <span class="bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">Module F4</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+                Owner: <span class="font-medium text-slate-700">Perera I.I.S.</span> (IT25100685) &bull; State Machine (BR-15) &amp; Masking (BR-16)
+            </p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                <span class="w-1.5 h-1.5 mr-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                BR-15 State Machine Active
+            </span>
+            <a href="/support/submit" class="text-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 transition shadow-sm active:scale-[0.98]">
+                + Log New Complaint
+            </a>
+        </div>
+    </div>
+
+    <!-- Notification Banners (Captures BR-15 Rejection) -->
+    <div th:if="${successMessage}" class="mb-6 bg-emerald-50/80 border border-emerald-100 rounded-2xl p-4 flex items-start space-x-3 shadow-xs">
+        <svg class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <div class="text-sm text-emerald-900 font-medium" th:text="${successMessage}"></div>
+    </div>
+
+    <div th:if="${errorMessage}" class="mb-6 bg-rose-50/80 border border-rose-100 rounded-2xl p-5 shadow-xs">
+        <div class="flex items-start space-x-3">
+            <svg class="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            <div>
+                <h3 class="text-xs font-semibold text-rose-900 uppercase tracking-wider">State Transition Rejected</h3>
+                <p class="text-sm text-rose-800 mt-1" th:text="${errorMessage}"></p>
+                <p class="text-xs text-rose-600 mt-1">Rule BR-15 prohibits jumping directly from OPEN to CLOSED. The ticket must first be transitioned to IN_PROGRESS or ESCALATED.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Pills -->
+    <div class="flex items-center space-x-2 mb-6 overflow-x-auto pb-2">
+        <a th:href="@{/support/tickets}"
+           th:class="${selectedStatus == 'ALL' or selectedStatus == null ? 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-white' : 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            All Tickets
+        </a>
+        <a th:href="@{/support/tickets(status='OPEN')}"
+           th:class="${selectedStatus == 'OPEN' ? 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-600 text-white' : 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            Open
+        </a>
+        <a th:href="@{/support/tickets(status='IN_PROGRESS')}"
+           th:class="${selectedStatus == 'IN_PROGRESS' ? 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-600 text-white' : 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            In Progress
+        </a>
+        <a th:href="@{/support/tickets(status='ESCALATED')}"
+           th:class="${selectedStatus == 'ESCALATED' ? 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-purple-600 text-white' : 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            Escalated
+        </a>
+        <a th:href="@{/support/tickets(status='RESOLVED')}"
+           th:class="${selectedStatus == 'RESOLVED' ? 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-600 text-white' : 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            Resolved
+        </a>
+        <a th:href="@{/support/tickets(status='CLOSED')}"
+           th:class="${selectedStatus == 'CLOSED' ? 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-600 text-white' : 'px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            Closed
+        </a>
+    </div>
+
+    <!-- Tickets Directory Table -->
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 overflow-hidden">
+        <div class="px-6 py-5 flex items-center justify-between">
+            <div>
+                <h2 class="text-base font-semibold tracking-tight text-slate-900">Support Incident Log</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Complaints and grievance workflow management</p>
+            </div>
+            <span class="text-xs font-mono bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
+                Tickets: <span class="font-semibold text-slate-900" th:text="${#lists.size(tickets)}">0</span>
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50/70 text-slate-400 text-xs uppercase font-medium tracking-wider">
+                <tr>
+                    <th class="py-3.5 px-5">Ref No (BR-14)</th>
+                    <th class="py-3.5 px-5">Passenger &amp; Contact</th>
+                    <th class="py-3.5 px-5">Category</th>
+                    <th class="py-3.5 px-5">Assigned Officer</th>
+                    <th class="py-3.5 px-5">Status</th>
+                    <th class="py-3.5 px-5">Logged Date</th>
+                    <th class="py-3.5 px-5 text-right">Workflow Actions</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100/70">
+                <tr th:each="t : ${tickets}" class="hover:bg-slate-50/60 transition">
+                    <td class="py-4 px-5">
+                        <span class="font-mono font-semibold text-xs text-blue-600" th:text="${t.refNo}"></span>
+                        <div th:if="${t.bookingRef != null}" class="text-xs font-mono text-slate-400 mt-0.5" th:text="'Trip Ref: ' + ${t.bookingRef}"></div>
+                    </td>
+                    <td class="py-4 px-5">
+                        <div class="font-medium text-slate-800" th:text="${t.passengerName}"></div>
+                        <div class="text-xs text-slate-500 font-mono mt-0.5" th:text="${t.contactNumber}"></div>
+                    </td>
+                    <td class="py-4 px-5">
+                        <span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-medium" th:text="${t.category}"></span>
+                    </td>
+                    <td class="py-4 px-5">
+                        <span th:if="${t.assignedOfficer != null}"
+                              class="text-xs font-medium text-slate-800 bg-slate-100 px-2.5 py-1 rounded-full inline-block"
+                              th:text="${t.assignedOfficer}"></span>
+                        <span th:if="${t.assignedOfficer == null}"
+                              class="text-xs text-slate-400 italic">Unassigned</span>
+                    </td>
+                    <td class="py-4 px-5">
+                        <!-- Soft iOS Status Badges -->
+                        <span th:if="${t.status.name() == 'OPEN'}" class="bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">
+                            OPEN
+                        </span>
+                        <span th:if="${t.status.name() == 'IN_PROGRESS'}" class="bg-amber-50 text-amber-700 text-xs px-3 py-1 rounded-full font-medium">
+                            IN_PROGRESS
+                        </span>
+                        <span th:if="${t.status.name() == 'ESCALATED'}" class="bg-purple-50 text-purple-700 text-xs px-3 py-1 rounded-full font-medium">
+                            ESCALATED
+                        </span>
+                        <span th:if="${t.status.name() == 'RESOLVED'}" class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-medium">
+                            RESOLVED
+                        </span>
+                        <span th:if="${t.status.name() == 'CLOSED'}" class="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-medium">
+                            CLOSED
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 text-xs text-slate-500 whitespace-nowrap"
+                        th:text="${t.createdAt != null ? #temporals.format(t.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">
+                    </td>
+                    <td class="py-4 px-5 text-right space-x-1 whitespace-nowrap">
+                        <a th:href="@{'/support/tickets/' + ${t.complaintId} + '/details'}"
+                           class="rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 text-xs transition">
+                            Details (BR-16)
+                        </a>
+
+                        <!-- State Machine Transition Trigger Modal -->
+                        <button type="button"
+                                th:data-ticket-id="${t.complaintId}"
+                                th:data-ref-no="${t.refNo}"
+                                th:data-status="${t.status.name()}"
+                                th:data-officer="${t.assignedOfficer != null ? t.assignedOfficer : ''}"
+                                onclick="openTransitionModal(this.getAttribute('data-ticket-id'), this.getAttribute('data-ref-no'), this.getAttribute('data-status'), this.getAttribute('data-officer'))"
+                                class="rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-3 py-1.5 text-xs transition">
+                            Change State &rarr;
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(tickets)}">
+                    <td colspan="7" class="py-12 text-center text-slate-400 text-xs">
+                        No support tickets found in this view.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Transition Ticket State (BR-15 Engine) -->
+<div id="transitionModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+        <div class="p-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h3 class="font-semibold text-base tracking-tight text-slate-900">Update Ticket Lifecycle State</h3>
+                <p id="modalRefSubtitle" class="text-xs text-slate-500 font-mono mt-0.5"></p>
+            </div>
+            <button type="button" onclick="closeTransitionModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-lg leading-none transition">&times;</button>
+        </div>
+
+        <form id="transitionForm" method="post" class="p-6 space-y-4">
+            <div class="bg-blue-50/60 rounded-2xl p-3.5 text-xs text-blue-900">
+                <strong class="font-semibold">Rule BR-15 Gating:</strong>
+                <p class="mt-1">Tickets in <em>OPEN</em> status cannot jump directly to <em>CLOSED</em>. They must be moved to <em>IN_PROGRESS</em> or <em>ESCALATED</em> first.</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Target State</label>
+                <select name="targetStatus" class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900" required>
+                    <option value="IN_PROGRESS">IN_PROGRESS (Investigating)</option>
+                    <option value="ESCALATED">ESCALATED (Operations Review)</option>
+                    <option value="RESOLVED">RESOLVED (Customer Satisfied)</option>
+                    <option value="CLOSED">CLOSED (Finalized)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Assigned Officer (Officer Name / ID)</label>
+                <input type="text" name="officerName" id="modalOfficerInput" placeholder="e.g. Officer Perera"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400">
+                <p class="text-xs text-slate-400 mt-1">Assign an officer when advancing ticket to IN_PROGRESS.</p>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-3">
+                <button type="button" onclick="closeTransitionModal()" class="rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium px-4 py-2.5 transition text-sm">
+                    Cancel
+                </button>
+                <button type="submit" class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 shadow-sm transition text-sm active:scale-[0.98]">
+                    Apply Transition (BR-15)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openTransitionModal(ticketId, refNo, status, officer) {
+        document.getElementById('modalRefSubtitle').innerText = refNo + ' (Current: ' + status + ')';
+        document.getElementById('transitionForm').action = '/support/tickets/' + ticketId + '/transition';
+        document.getElementById('modalOfficerInput').value = officer || '';
+        document.getElementById('transitionModal').classList.remove('hidden');
+    }
+
+    function closeTransitionModal() {
+        document.getElementById('transitionModal').classList.add('hidden');
+    }
+</script>
+
+</body>
+</html>
