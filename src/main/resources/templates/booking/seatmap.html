@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Selection &bull; RouteMaster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .seat-btn { transition: all 0.15s ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+
+<!-- Navigation: Frosted Glass -->
+<nav class="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <a href="/booking/search" class="flex items-center space-x-2.5 group">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:bg-blue-700 transition">
+                        RM
+                    </div>
+                    <span class="text-base font-semibold tracking-tight text-slate-900 group-hover:text-blue-600 transition">RouteMaster</span>
+                </a>
+                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Seat Map &amp; Lock Engine</span>
+            </div>
+            <a href="/booking/search" class="text-xs font-medium text-slate-500 hover:text-slate-900 px-3 py-1.5 rounded-xl hover:bg-slate-100/80 transition">&larr; Back to Search</a>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-5xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+
+    <!-- Trip Details Card -->
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <div class="flex items-center space-x-2.5">
+                <h1 class="text-2xl font-semibold tracking-tight text-slate-900" th:text="${trip.route.routeName}"></h1>
+                <span class="text-xs bg-blue-50 text-blue-700 font-medium px-3 py-1 rounded-full">Active Timetable</span>
+            </div>
+            <div class="text-sm text-slate-600 mt-1 flex items-center space-x-2">
+                <span class="font-medium text-slate-800" th:text="${trip.route.origin}"></span>
+                <span class="text-slate-300">&rarr;</span>
+                <span class="font-medium text-slate-800" th:text="${trip.route.destination}"></span>
+                <span class="text-slate-400">&bull;</span>
+                <span>Date: <span class="font-medium text-slate-700" th:text="${trip.tripDate}"></span></span>
+                <span class="text-slate-400">&bull;</span>
+                <span>Dep: <span class="font-mono text-blue-600 font-semibold" th:text="${trip.departureTime}"></span></span>
+            </div>
+            <div class="text-xs text-slate-400 mt-1 font-mono">
+                Vehicle: <span th:text="${bus.registrationNo + ' (' + bus.model + ' &bull; ' + bus.seatCapacity + ' seats)'}"></span>
+            </div>
+        </div>
+
+        <!-- Live Distributed Lock Status Badge -->
+        <div class="bg-slate-50/80 border border-slate-100 rounded-2xl p-3.5 text-right">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Distributed Lock Protocol</div>
+            <div class="flex items-center justify-end space-x-1.5 mt-1 text-xs font-medium text-emerald-700">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span>Redisson RLock Active (300s TTL)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Alerts -->
+    <div id="alertBox" class="hidden mb-6 rounded-2xl p-4 text-sm font-medium shadow-xs"></div>
+
+    <!-- Countdown Timer Banner (Revealed on Hold) -->
+    <div id="timerBanner" class="hidden mb-6 bg-amber-50/80 border border-amber-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs animate-pulse">
+        <div class="flex items-center space-x-3">
+            <svg class="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <h3 class="text-sm font-semibold text-amber-900">Seats Reserved in Distributed Cache (BR-01)</h3>
+                <p class="text-xs text-amber-800 mt-0.5">Complete passenger checkout before lock expiry. Seats will auto-release after 5 minutes.</p>
+            </div>
+        </div>
+        <div class="text-right">
+            <div class="text-xs text-amber-700 font-semibold uppercase tracking-wider">Time Remaining</div>
+            <div id="timerDisplay" class="text-2xl font-mono font-bold text-amber-900">05:00</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Seat Map Container (Left 7 Cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6">
+            <div class="flex items-center justify-between pb-4 mb-6">
+                <div>
+                    <h2 class="text-base font-semibold tracking-tight text-slate-900">Select Passenger Seats</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Maximum 4 seats per booking transaction (BR-03)</p>
+                </div>
+                <!-- Legend -->
+                <div class="flex items-center space-x-3 text-xs">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-3 h-3 rounded-full bg-slate-200 inline-block"></span>
+                        <span class="text-slate-600">Available</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span>
+                        <span class="text-slate-600">Locked</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-3 h-3 rounded-full bg-slate-300 inline-block"></span>
+                        <span class="text-slate-600">Booked</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bus Driver Front Indicator -->
+            <div class="w-full bg-slate-50 border border-slate-100 rounded-xl py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider mb-6 flex items-center justify-between px-6">
+                <span>Front / Entry</span>
+                <span class="bg-slate-200/60 px-2.5 py-0.5 rounded-full text-slate-600 font-mono text-xs">Driver Cabin</span>
+            </div>
+
+            <!-- Dynamic 2x2 Seat Layout -->
+            <div class="max-w-xs mx-auto space-y-3">
+                <div class="grid grid-cols-5 gap-2.5 items-center">
+                    <div th:each="s, stat : ${seatMap}" th:remove="tag">
+                        <!-- Left Pair Column 1 -->
+                        <div th:if="${stat.index % 4 == 0}" class="col-span-1">
+                            <button type="button"
+                                    th:data-seat="${s.seatNo}"
+                                    th:data-state="${s.state.name()}"
+                                    onclick="toggleSeat(this)"
+                                    th:disabled="${s.state.name() == 'BOOKED' or s.state.name() == 'LOCKED'}"
+                                    th:class="${s.state.name() == 'BOOKED' ? 'w-full py-3 bg-slate-200/70 text-slate-400 cursor-not-allowed rounded-xl font-medium text-xs' : (s.state.name() == 'LOCKED' ? 'w-full py-3 bg-amber-100/70 text-amber-800 cursor-not-allowed rounded-xl font-semibold text-xs' : 'w-full py-3 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 rounded-xl font-semibold text-xs transition-all seat-btn')}">
+                                <span th:text="${s.seatNo}"></span>
+                            </button>
+                        </div>
+
+                        <!-- Left Pair Column 2 -->
+                        <div th:if="${stat.index % 4 == 1}" class="col-span-1">
+                            <button type="button"
+                                    th:data-seat="${s.seatNo}"
+                                    th:data-state="${s.state.name()}"
+                                    onclick="toggleSeat(this)"
+                                    th:disabled="${s.state.name() == 'BOOKED' or s.state.name() == 'LOCKED'}"
+                                    th:class="${s.state.name() == 'BOOKED' ? 'w-full py-3 bg-slate-200/70 text-slate-400 cursor-not-allowed rounded-xl font-medium text-xs' : (s.state.name() == 'LOCKED' ? 'w-full py-3 bg-amber-100/70 text-amber-800 cursor-not-allowed rounded-xl font-semibold text-xs' : 'w-full py-3 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 rounded-xl font-semibold text-xs transition-all seat-btn')}">
+                                <span th:text="${s.seatNo}"></span>
+                            </button>
+                        </div>
+
+                        <!-- Aisle Spacer (Col 3) -->
+                        <div th:if="${stat.index % 4 == 1}" class="col-span-1 text-center text-slate-200 text-xs font-mono select-none">&bull;</div>
+
+                        <!-- Right Pair Column 3 -->
+                        <div th:if="${stat.index % 4 == 2}" class="col-span-1">
+                            <button type="button"
+                                    th:data-seat="${s.seatNo}"
+                                    th:data-state="${s.state.name()}"
+                                    onclick="toggleSeat(this)"
+                                    th:disabled="${s.state.name() == 'BOOKED' or s.state.name() == 'LOCKED'}"
+                                    th:class="${s.state.name() == 'BOOKED' ? 'w-full py-3 bg-slate-200/70 text-slate-400 cursor-not-allowed rounded-xl font-medium text-xs' : (s.state.name() == 'LOCKED' ? 'w-full py-3 bg-amber-100/70 text-amber-800 cursor-not-allowed rounded-xl font-semibold text-xs' : 'w-full py-3 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 rounded-xl font-semibold text-xs transition-all seat-btn')}">
+                                <span th:text="${s.seatNo}"></span>
+                            </button>
+                        </div>
+
+                        <!-- Right Pair Column 4 -->
+                        <div th:if="${stat.index % 4 == 3}" class="col-span-1">
+                            <button type="button"
+                                    th:data-seat="${s.seatNo}"
+                                    th:data-state="${s.state.name()}"
+                                    onclick="toggleSeat(this)"
+                                    th:disabled="${s.state.name() == 'BOOKED' or s.state.name() == 'LOCKED'}"
+                                    th:class="${s.state.name() == 'BOOKED' ? 'w-full py-3 bg-slate-200/70 text-slate-400 cursor-not-allowed rounded-xl font-medium text-xs' : (s.state.name() == 'LOCKED' ? 'w-full py-3 bg-amber-100/70 text-amber-800 cursor-not-allowed rounded-xl font-semibold text-xs' : 'w-full py-3 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 rounded-xl font-semibold text-xs transition-all seat-btn')}">
+                                <span th:text="${s.seatNo}"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lock Trigger Button -->
+            <div class="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400">Selected: </span>
+                    <span id="selectedSeatsLabel" class="text-xs font-semibold text-blue-600 font-mono">None</span>
+                </div>
+                <button id="lockBtn" type="button" onclick="acquireSeatLock()" disabled
+                        class="rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-medium px-6 py-2.5 text-sm transition-all shadow-sm active:scale-[0.98]">
+                    Lock Selected Seats &rarr;
+                </button>
+            </div>
+        </div>
+
+        <!-- Checkout Card (Right 5 Cols) -->
+        <div class="lg:col-span-5">
+            <div id="checkoutCard" class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6 opacity-50 pointer-events-none transition-all">
+                <div class="flex items-center justify-between pb-4 mb-4">
+                    <h2 class="text-base font-semibold tracking-tight text-slate-900">Passenger &amp; Payment</h2>
+                    <span class="text-xs font-mono bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">BR-02 Gated</span>
+                </div>
+
+                <form th:action="@{/booking/confirm}" method="post" class="space-y-4">
+                    <input type="hidden" name="tripId" th:value="${trip.tripId}">
+                    <input type="hidden" name="holdToken" th:value="${holdToken}" id="formHoldToken">
+                    <div id="hiddenSeatInputs"></div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Passenger Full Name</label>
+                        <input type="text" name="passengerName" placeholder="e.g. S.A. Perera"
+                               class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">National Identity Card (NIC)</label>
+                        <input type="text" name="nic" placeholder="e.g. 200012345678"
+                               class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required>
+                        <p class="text-xs text-slate-400 mt-1">Used for inspector pass verification and R15 identity lookup</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Phone Number</label>
+                            <input type="text" name="phone" placeholder="0771234567"
+                                   class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Email (Optional)</label>
+                            <input type="email" name="email" placeholder="passenger@sliit.lk"
+                                   class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400">
+                        </div>
+                    </div>
+
+                    <!-- Payment Summary -->
+                    <div class="bg-slate-50/80 border border-slate-100 rounded-2xl p-4 mt-4 space-y-2 text-xs text-slate-600">
+                        <div class="flex justify-between">
+                            <span>Standard Fare:</span>
+                            <span>Rs. 1,500.00 &times; <span id="summarySeatCount">0</span></span>
+                        </div>
+                        <div class="flex justify-between font-semibold text-sm text-slate-900 pt-2 border-t border-slate-100">
+                            <span>Total Payable:</span>
+                            <span class="text-blue-600" id="summaryTotalAmount">Rs. 0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="confirmBtn" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 text-sm shadow-sm transition-all active:scale-[0.98]">
+                        Pay &amp; Confirm Booking (BR-02) &rarr;
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const tripId = /*[[${trip.tripId}]]*/ 1;
+    const busId = /*[[${bus.busId}]]*/ 1;
+    const holdToken = /*[[${holdToken}]]*/ "";
+    const selectedSeats = new Set();
+    let lockTimer = null;
+
+    function toggleSeat(btn) {
+        const seatNo = btn.getAttribute('data-seat');
+        if (selectedSeats.has(seatNo)) {
+            selectedSeats.delete(seatNo);
+            btn.classList.remove('bg-blue-600', 'text-white', 'shadow-sm');
+            btn.classList.add('bg-slate-100', 'text-slate-700');
+        } else {
+            if (selectedSeats.size >= 4) {
+                showAlert('Maximum 4 seats allowed per booking transaction.', 'warning');
+                return;
+            }
+            selectedSeats.add(seatNo);
+            btn.classList.remove('bg-slate-100', 'text-slate-700');
+            btn.classList.add('bg-blue-600', 'text-white', 'shadow-sm');
+        }
+
+        updateSelectionUI();
+    }
+
+    function updateSelectionUI() {
+        const list = Array.from(selectedSeats);
+        const count = list.length;
+        document.getElementById('selectedSeatsLabel').innerText = count > 0 ? list.join(', ') : 'None';
+        document.getElementById('lockBtn').disabled = count === 0;
+
+        document.getElementById('summarySeatCount').innerText = count;
+        document.getElementById('summaryTotalAmount').innerText = 'Rs. ' + (count * 1500).toLocaleString() + '.00';
+    }
+
+    async function acquireSeatLock() {
+        const list = Array.from(selectedSeats);
+        if (list.length === 0) return;
+
+        document.getElementById('lockBtn').disabled = true;
+        document.getElementById('lockBtn').innerText = 'Acquiring Distributed Lock...';
+
+        try {
+            const res = await fetch('/booking/hold', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tripId: tripId,
+                    busId: busId,
+                    seatNos: list,
+                    holdToken: holdToken
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showAlert(data.message, 'success');
+                startCountdown(data.ttlSeconds);
+                enableCheckout(list);
+            } else {
+                showAlert(data.message, 'error');
+                document.getElementById('lockBtn').disabled = false;
+                document.getElementById('lockBtn').innerText = 'Lock Selected Seats →';
+            }
+        } catch (err) {
+            showAlert('Network error while acquiring distributed lock.', 'error');
+            document.getElementById('lockBtn').disabled = false;
+            document.getElementById('lockBtn').innerText = 'Lock Selected Seats →';
+        }
+    }
+
+    function enableCheckout(seats) {
+        const card = document.getElementById('checkoutCard');
+        card.classList.remove('opacity-50', 'pointer-events-none');
+
+        const container = document.getElementById('hiddenSeatInputs');
+        container.innerHTML = '';
+        seats.forEach(s => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'seatNos';
+            inp.value = s;
+            container.appendChild(inp);
+        });
+
+        document.getElementById('lockBtn').innerText = 'Seats Locked ✓';
+        document.getElementById('lockBtn').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        document.getElementById('lockBtn').classList.add('bg-emerald-600', 'cursor-default');
+    }
+
+    function startCountdown(durationSec) {
+        let remaining = durationSec;
+        const banner = document.getElementById('timerBanner');
+        const display = document.getElementById('timerDisplay');
+        banner.classList.remove('hidden');
+
+        if (lockTimer) clearInterval(lockTimer);
+
+        lockTimer = setInterval(() => {
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            display.innerText = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+
+            if (--remaining < 0) {
+                clearInterval(lockTimer);
+                showAlert('Lock expired (300s TTL). Please reselect your seats.', 'error');
+                setTimeout(() => window.location.reload(), 2500);
+            }
+        }, 1000);
+    }
+
+    function showAlert(msg, type) {
+        const box = document.getElementById('alertBox');
+        box.classList.remove('hidden', 'bg-emerald-50/80', 'text-emerald-900', 'border-emerald-100', 'bg-rose-50/80', 'text-rose-900', 'border-rose-100', 'bg-amber-50/80', 'text-amber-900', 'border-amber-100');
+
+        if (type === 'success') {
+            box.classList.add('bg-emerald-50/80', 'text-emerald-900', 'border', 'border-emerald-100');
+        } else if (type === 'warning') {
+            box.classList.add('bg-amber-50/80', 'text-amber-900', 'border', 'border-amber-100');
+        } else {
+            box.classList.add('bg-rose-50/80', 'text-rose-900', 'border', 'border-rose-100');
+        }
+        box.innerText = msg;
+    }
+</script>
+
+</body>
+</html>

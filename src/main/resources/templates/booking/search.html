@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Trips &amp; Book Seats &bull; RouteMaster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+
+<!-- Navigation: Frosted Glass -->
+<nav class="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-2.5 group">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:bg-blue-700 transition">
+                        RM
+                    </div>
+                    <span class="text-base font-semibold tracking-tight text-slate-900 group-hover:text-blue-600 transition">RouteMaster</span>
+                </a>
+                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Passenger Reservation</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-1 text-xs font-medium">
+                <a href="/booking/search" class="bg-slate-100 text-slate-900 px-3.5 py-2 rounded-xl font-semibold shadow-xs">F1: Book</a>
+                <a href="/fleet/buses" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F2: Fleet</a>
+                <a href="/operations/trips" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F3: Operations</a>
+                <a href="/support/tickets" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F4: Support</a>
+                <a href="/finance/dashboard" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F5: Finance</a>
+                <a href="/station-board" class="text-blue-600 bg-blue-50/60 hover:bg-blue-100/60 px-3.5 py-2 rounded-xl transition-all font-semibold">F6: Live Board</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center space-x-2.5">
+            <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">Find Available Express Trips</h1>
+            <span class="bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">Module F1</span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1">
+            Owner: <span class="font-medium text-slate-700">Nenuka G.V.I.</span> (IT25101467, Product Owner) &bull; Redisson Distributed Lock Engine
+        </p>
+    </div>
+
+    <!-- Notifications -->
+    <div th:if="${errorMessage}" class="mb-6 bg-rose-50/80 border border-rose-100 rounded-2xl p-4 text-sm text-rose-900 font-medium shadow-xs">
+        <span th:text="${errorMessage}"></span>
+    </div>
+    <div th:if="${successMessage}" class="mb-6 bg-emerald-50/80 border border-emerald-100 rounded-2xl p-4 text-sm text-emerald-900 font-medium shadow-xs">
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- Search Form Card -->
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6 mb-8">
+        <form th:action="@{/booking/search}" method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Origin City</label>
+                <input type="text" name="origin" th:value="${origin}" placeholder="e.g. Colombo"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Destination City</label>
+                <input type="text" name="destination" th:value="${destination}" placeholder="e.g. Kandy"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-3 text-sm text-slate-900 placeholder-slate-400">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Travel Date</label>
+                <input type="date" name="date" th:value="${date}"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-3 text-sm text-slate-900">
+            </div>
+            <div>
+                <button type="submit" class="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 text-sm transition shadow-sm active:scale-[0.98]">
+                    Search Schedules &rarr;
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Search Results -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between mb-3 px-1">
+            <h2 class="text-base font-semibold tracking-tight text-slate-900">Available Published Departures</h2>
+            <span class="text-xs font-mono bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
+                Trips Found: <span class="font-semibold text-slate-900" th:text="${#lists.size(trips)}">0</span>
+            </span>
+        </div>
+
+        <div th:each="t : ${trips}" class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6 hover:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.08)] transition-all">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-2.5">
+                        <span class="text-lg font-semibold tracking-tight text-slate-900" th:text="${t.route.routeName}"></span>
+                        <span class="text-xs bg-slate-100 text-slate-600 font-mono px-2.5 py-0.5 rounded-full"
+                              th:text="'Trip #' + ${t.tripId}"></span>
+                    </div>
+                    <div class="text-sm text-slate-600 mt-1 flex items-center space-x-2">
+                        <span class="font-medium text-slate-800" th:text="${t.route.origin}"></span>
+                        <span class="text-slate-300">&rarr;</span>
+                        <span class="font-medium text-slate-800" th:text="${t.route.destination}"></span>
+                        <span class="text-slate-400 font-mono text-xs" th:text="'(' + ${t.route.distanceKm} + ' km)'"></span>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-2 flex items-center space-x-4">
+                        <span>Date: <strong class="text-slate-700 font-medium" th:text="${t.tripDate}"></strong></span>
+                        <span>Dep: <strong class="text-blue-600 font-mono font-semibold" th:text="${t.departureTime}"></strong></span>
+                        <span>Arr: <strong class="text-slate-700 font-mono" th:text="${t.arrivalTime}"></strong></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-5">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 uppercase font-medium tracking-wider">Standard Fare</div>
+                        <div class="text-xl font-semibold tracking-tight text-slate-900">Rs. 1,500 <span class="text-xs font-normal text-slate-400">/ seat</span></div>
+                    </div>
+                    <a th:href="@{'/booking/trips/' + ${t.tripId} + '/seatmap'}"
+                       class="rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 text-xs transition shadow-sm flex items-center space-x-1.5 active:scale-[0.98]">
+                        <span>Select Seats</span>
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(trips)}" class="bg-white rounded-2xl p-12 text-center border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] text-slate-400">
+            <svg class="mx-auto h-12 w-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <p class="text-base font-medium text-slate-700">No published trips found for this search criteria.</p>
+            <p class="text-xs text-slate-400 mt-1">Make sure trips are published with an assigned bus and driver (Rule BR-09) in Operations.</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
