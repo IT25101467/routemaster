@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteMaster Transit System</title>
+    <!-- Tailwind CSS CDN for instant rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<nav class="bg-indigo-900 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <span class="text-xl font-bold tracking-wider">RouteMaster</span>
+                <span class="text-xs bg-indigo-700 px-2 py-1 rounded text-indigo-200">Lanka Transit Services</span>
+            </div>
+            <!-- Role-Scoped Navigation Links -->
+            <div class="hidden md:flex space-x-4 text-sm font-medium">
+                <a href="/booking/search" class="hover:bg-indigo-800 px-3 py-2 rounded">F1: Book Seat</a>
+                <a href="/fleet/buses" class="hover:bg-indigo-800 px-3 py-2 rounded">F2: Fleet</a>
+                <a href="/operations/trips" class="hover:bg-indigo-800 px-3 py-2 rounded">F3: Operations</a>
+                <a href="/support/tickets" class="hover:bg-indigo-800 px-3 py-2 rounded">F4: Support</a>
+                <a href="/finance/dashboard" class="hover:bg-indigo-800 px-3 py-2 rounded">F5: Finance</a>
+                <a href="/station-board" class="hover:bg-indigo-800 px-3 py-2 rounded text-amber-300">F6: Live Board</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content Container -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div th:replace="${content}">
+        <!-- Page-specific content renders here -->
+    </div>
+</main>
+
+<footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    SE2030 Group Project &bull; Year 2 Semester 1 &bull; RouteMaster System
+</footer>
+</body>
+</html>
