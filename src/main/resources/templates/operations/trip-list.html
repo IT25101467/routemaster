@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operations &amp; Scheduling &bull; RouteMaster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+
+<!-- Navigation Bar: Frosted Glass -->
+<nav class="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-40 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-2.5 group">
+                    <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm group-hover:bg-blue-700 transition">
+                        RM
+                    </div>
+                    <span class="text-base font-semibold tracking-tight text-slate-900 group-hover:text-blue-600 transition">RouteMaster</span>
+                </a>
+                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Operations Center</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-1 text-xs font-medium">
+                <a href="/booking/search" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F1: Book</a>
+                <a href="/fleet/buses" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F2: Fleet</a>
+                <a href="/operations/trips" class="bg-slate-100 text-slate-900 px-3.5 py-2 rounded-xl font-semibold shadow-xs">F3: Operations</a>
+                <a href="/support/tickets" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F4: Support</a>
+                <a href="/finance/dashboard" class="text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 px-3.5 py-2 rounded-xl transition-all">F5: Finance</a>
+                <a href="/station-board" class="text-blue-600 bg-blue-50/60 hover:bg-blue-100/60 px-3.5 py-2 rounded-xl transition-all font-semibold">F6: Live Board</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-6 gap-4">
+        <div>
+            <div class="flex items-center space-x-2.5">
+                <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">Schedule &amp; Trip Operations</h1>
+                <span class="bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">Module F3</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+                Owner: <span class="font-medium text-slate-700">Lakshan R.P.C.</span> (IT25103230) &bull; SE2030 / IT2140 Capstone
+            </p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                <span class="w-1.5 h-1.5 mr-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                Chain of Responsibility Active
+            </span>
+            <a href="/fleet/buses" class="text-xs rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium px-4 py-2 transition shadow-xs">
+                View Fleet Inventory &rarr;
+            </a>
+        </div>
+    </div>
+
+    <!-- Notification Banners -->
+    <div th:if="${successMessage}" class="mb-6 bg-emerald-50/80 border border-emerald-100 rounded-2xl p-4 flex items-start space-x-3 shadow-xs">
+        <svg class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <div class="text-sm text-emerald-900 font-medium" th:text="${successMessage}"></div>
+    </div>
+
+    <div th:if="${errorMessage}" class="mb-6 bg-rose-50/80 border border-rose-100 rounded-2xl p-4 flex items-start space-x-3 shadow-xs">
+        <svg class="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <div class="text-sm text-rose-900 font-medium" th:text="${errorMessage}"></div>
+    </div>
+
+    <!-- Critical Replacement Alert Banner (BR-12 / BR-13) -->
+    <div th:if="${replacementAlert}" class="mb-6 bg-amber-50/80 border border-amber-200/80 rounded-2xl p-5 shadow-xs">
+        <div class="flex items-start space-x-3">
+            <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+                <h3 class="text-xs font-semibold text-amber-900 uppercase tracking-wider">BR-12 Disruption Protocol Triggered</h3>
+                <p class="text-sm text-amber-800 mt-1" th:text="${replacementAlert}"></p>
+                <div class="mt-2 text-xs text-amber-700 bg-amber-100/60 px-3 py-1 rounded-full inline-block font-mono">
+                    Mandate: Replacement bus capacity must be &ge; current bookings (BR-13)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Management Row: Add Route & Schedule Trip -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+
+        <!-- Card 1: Register Route (BR-08) -->
+        <div class="lg:col-span-5 bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-base font-semibold tracking-tight text-slate-900 flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-blue-600 mr-2.5"></span>
+                        Register Transit Route
+                    </h2>
+                    <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-mono">BR-08 Enforced</span>
+                </div>
+                <form th:action="@{/operations/routes}" th:object="${routeForm}" method="post" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Route Name</label>
+                        <input type="text" th:field="*{routeName}" placeholder="e.g. Colombo Express 01"
+                               class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Origin</label>
+                            <input type="text" th:field="*{origin}" placeholder="Colombo"
+                                   class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Destination</label>
+                            <input type="text" th:field="*{destination}" placeholder="Kandy"
+                                   class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Distance (km)</label>
+                            <input type="number" step="0.1" th:field="*{distanceKm}" placeholder="115.5"
+                                   class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Duration (Mins)</label>
+                            <input type="number" th:field="*{estDurationMinutes}" placeholder="180"
+                                   class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full mt-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 text-sm shadow-sm transition-all active:scale-[0.98]">
+                        Create Route &rarr;
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Card 2: Schedule Trip -->
+        <div class="lg:col-span-7 bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-6">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-base font-semibold tracking-tight text-slate-900 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-blue-600 mr-2.5"></span>
+                    Schedule New Trip Timetable
+                </h2>
+                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-mono">Status: SCHEDULED</span>
+            </div>
+
+            <form th:action="@{/operations/trips}" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Select Registered Route</label>
+                    <select name="routeId" class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900" required>
+                        <option value="" disabled selected>-- Choose an established route --</option>
+                        <option th:each="r : ${routes}" th:value="${r.routeId}"
+                                th:text="${r.routeName + ' (' + r.origin + ' &rarr; ' + r.destination + ' | ' + r.estDurationMinutes + ' mins)'}"></option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Trip Date</label>
+                        <input type="date" name="tripDate" th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                               class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Departure Time</label>
+                        <input type="time" name="departureTime" value="08:00"
+                               class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Override Duration</label>
+                        <input type="number" name="durationMins" placeholder="Default route est."
+                               class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400">
+                    </div>
+                </div>
+
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-4 text-xs text-slate-500 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <span><strong class="text-slate-700 font-semibold">Rule BR-09:</strong> Created trips start as <em>Unpublished</em> until Bus and Driver are assigned.</span>
+                    <button type="submit" class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 text-sm shadow-sm transition-all active:scale-[0.98] whitespace-nowrap">
+                        Schedule Trip
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Active Trips Directory Table -->
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 overflow-hidden">
+        <div class="px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+                <h2 class="text-base font-semibold tracking-tight text-slate-900">Operational Trips &amp; Timetable</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Real-time status, vehicle roster, and disruption management</p>
+            </div>
+            <div class="text-xs font-mono bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
+                Total Trips: <span class="font-semibold text-slate-900" th:text="${#lists.size(trips)}">0</span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50/70 text-slate-400 text-xs uppercase font-medium tracking-wider">
+                <tr>
+                    <th class="py-3.5 px-5">Trip ID</th>
+                    <th class="py-3.5 px-5">Route Info</th>
+                    <th class="py-3.5 px-5">Date &amp; Times</th>
+                    <th class="py-3.5 px-5">Assigned Vehicle</th>
+                    <th class="py-3.5 px-5">Driver</th>
+                    <th class="py-3.5 px-5">Status</th>
+                    <th class="py-3.5 px-5">Visibility</th>
+                    <th class="py-3.5 px-5 text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100/70">
+                <tr th:each="t : ${trips}" class="hover:bg-slate-50/60 transition">
+                    <td class="py-4 px-5 font-mono font-semibold text-slate-900">
+                        #<span th:text="${t.tripId}"></span>
+                    </td>
+                    <td class="py-4 px-5">
+                        <div class="font-medium text-slate-800" th:text="${t.route.routeName}"></div>
+                        <div class="text-xs text-slate-500 flex items-center mt-0.5">
+                            <span th:text="${t.route.origin}"></span>
+                            <span class="mx-1.5 text-slate-300">&rarr;</span>
+                            <span th:text="${t.route.destination}"></span>
+                            <span class="ml-1.5 text-slate-400 font-mono" th:text="'(' + ${t.route.distanceKm} + 'km)'"></span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 whitespace-nowrap">
+                        <div class="font-medium text-slate-700" th:text="${t.tripDate}"></div>
+                        <div class="text-xs font-mono text-slate-500 mt-0.5">
+                            <span class="text-blue-600 font-semibold" th:text="${t.departureTime}"></span>
+                            <span class="mx-1 text-slate-300">&rarr;</span>
+                            <span th:text="${t.arrivalTime}"></span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-5">
+                        <div th:if="${t.busId != null and busMap[t.busId] != null}">
+                            <div class="font-medium text-slate-800" th:text="${busMap[t.busId].registrationNo}"></div>
+                            <div class="text-xs text-slate-400 mt-0.5" th:text="${busMap[t.busId].model + ' (' + busMap[t.busId].seatCapacity + ' seats)'}"></div>
+                        </div>
+                        <div th:if="${t.busId != null and busMap[t.busId] == null}">
+                            <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-mono" th:text="'Bus #' + ${t.busId}"></span>
+                        </div>
+                        <div th:if="${t.busId == null}">
+                            <span class="inline-flex items-center text-xs text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full font-medium">
+                                Unassigned
+                            </span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-5">
+                        <span th:if="${t.driverId != null}"
+                              class="inline-flex items-center text-xs font-mono font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">
+                            Driver #<span th:text="${t.driverId}"></span>
+                        </span>
+                        <span th:if="${t.driverId == null}"
+                              class="inline-flex items-center text-xs text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full font-medium">
+                            Unassigned
+                        </span>
+                    </td>
+                    <td class="py-4 px-5">
+                        <!-- Soft iOS Status Badges -->
+                        <span th:if="${t.status.name() == 'SCHEDULED'}" class="bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">
+                            SCHEDULED
+                        </span>
+                        <span th:if="${t.status.name() == 'BOARDING'}" class="bg-purple-50 text-purple-700 text-xs px-3 py-1 rounded-full font-medium">
+                            BOARDING
+                        </span>
+                        <span th:if="${t.status.name() == 'DEPARTED'}" class="bg-indigo-50 text-indigo-700 text-xs px-3 py-1 rounded-full font-medium">
+                            DEPARTED
+                        </span>
+                        <span th:if="${t.status.name() == 'DELAYED'}" class="bg-rose-50 text-rose-700 text-xs px-3 py-1 rounded-full font-medium animate-pulse">
+                            DELAYED
+                        </span>
+                        <span th:if="${t.status.name() == 'ARRIVED'}" class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-medium">
+                            ARRIVED
+                        </span>
+                        <span th:if="${t.status.name() == 'CANCELLED'}" class="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-medium">
+                            CANCELLED
+                        </span>
+                    </td>
+                    <td class="py-4 px-5">
+                        <span th:if="${t.published}" class="inline-flex items-center text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+                            <svg class="w-3 h-3 mr-1 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Published
+                        </span>
+                        <span th:if="${!t.published}" class="text-xs font-medium text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
+                            Draft (BR-09)
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 text-right space-x-1 whitespace-nowrap">
+                        <button th:if="${t.status.name() == 'DELAYED' and delayNoticeMap != null and delayNoticeMap[t.tripId] != null and delayNoticeMap[t.tripId].delayMinutes > 60}"
+                                type="button"
+                                th:data-trip-id="${t.tripId}"
+                                th:data-route-name="${t.route.routeName}"
+                                th:data-current-bus="${t.busId != null and busMap[t.busId] != null ? busMap[t.busId].registrationNo : 'Unassigned'}"
+                                th:data-delay="${delayNoticeMap[t.tripId].delayMinutes}"
+                                onclick="openReplaceBusModal(this.getAttribute('data-trip-id'), this.getAttribute('data-route-name'), this.getAttribute('data-current-bus'), this.getAttribute('data-delay'))"
+                                class="bg-amber-50 hover:bg-amber-100 text-amber-800 font-medium px-3 py-1.5 rounded-full text-xs transition">
+                            Replace Bus (BR-13)
+                        </button>
+                        <button type="button"
+                                th:data-trip-id="${t.tripId}"
+                                th:data-route-name="${t.route.routeName}"
+                                onclick="openAssignModal(this.getAttribute('data-trip-id'), this.getAttribute('data-route-name'))"
+                                class="bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium px-3 py-1.5 rounded-full text-xs transition">
+                            Assign
+                        </button>
+                        <button type="button"
+                                th:data-trip-id="${t.tripId}"
+                                th:data-route-name="${t.route.routeName}"
+                                onclick="openDelayModal(this.getAttribute('data-trip-id'), this.getAttribute('data-route-name'))"
+                                class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-medium px-3 py-1.5 rounded-full text-xs transition">
+                            Delay
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(trips)}">
+                    <td colspan="8" class="py-12 text-center text-slate-400 text-xs">
+                        No trips scheduled yet. Use the form above to schedule your first trip.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 1: Assign Bus & Driver (Chain of Responsibility) -->
+<div id="assignModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+        <div class="p-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h3 class="font-semibold text-base tracking-tight text-slate-900">Assign Vehicle &amp; Driver</h3>
+                <p id="assignModalSubtitle" class="text-xs text-slate-500 font-mono mt-0.5"></p>
+            </div>
+            <button type="button" onclick="closeAssignModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-lg leading-none transition">&times;</button>
+        </div>
+
+        <form id="assignForm" method="post" class="p-6 space-y-4">
+            <div class="bg-blue-50/60 rounded-2xl p-3.5 text-xs text-blue-900">
+                <strong class="font-semibold">Chain of Responsibility Checks:</strong>
+                <ul class="list-disc list-inside mt-1.5 space-y-1 text-blue-800">
+                    <li>BR-05: Bus must be ACTIVE</li>
+                    <li>BR-06 &amp; BR-07: Overlap + 30m turnaround buffer</li>
+                    <li>BR-10: Driver schedule conflict gate</li>
+                </ul>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Select Available Bus</label>
+                <select name="busId" class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900" required>
+                    <option value="" disabled selected>-- Select an active bus --</option>
+                    <option th:each="b : ${buses}" th:value="${b.busId}"
+                            th:text="${b.registrationNo + ' - ' + b.model + ' (' + b.seatCapacity + ' seats)'}"></option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Driver ID (Staff No)</label>
+                <input type="number" name="driverId" placeholder="e.g. 101" min="1"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900" required>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-3">
+                <button type="button" onclick="closeAssignModal()" class="rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium px-4 py-2.5 transition text-sm">
+                    Cancel
+                </button>
+                <button type="submit" class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 shadow-sm transition text-sm active:scale-[0.98]">
+                    Validate &amp; Assign (BR-09)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL 2: Report Delay Notice (BR-12 / BR-13 Disruption Protocol) -->
+<div id="delayModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+        <div class="p-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h3 class="font-semibold text-base tracking-tight text-slate-900">Publish Disruption Notice</h3>
+                <p id="delayModalSubtitle" class="text-xs text-slate-500 font-mono mt-0.5"></p>
+            </div>
+            <button type="button" onclick="closeDelayModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-lg leading-none transition">&times;</button>
+        </div>
+
+        <form id="delayForm" method="post" class="p-6 space-y-4">
+            <div class="bg-amber-50/80 rounded-2xl p-3.5 text-xs text-amber-900">
+                <strong class="font-semibold">BR-12 Operational Threshold:</strong> Delays exceeding <strong>60 minutes</strong> automatically require replacement bus reallocation (BR-13) and alert broadcasting.
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Delay Duration (Minutes)</label>
+                <input type="number" name="delayMinutes" min="1" max="720" value="15"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900" required>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Reason for Delay</label>
+                <textarea name="reason" rows="3" placeholder="e.g. Engine temperature warning on Southern Expressway"
+                          class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400" required></textarea>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-3">
+                <button type="button" onclick="closeDelayModal()" class="rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium px-4 py-2.5 transition text-sm">
+                    Cancel
+                </button>
+                <button type="submit" class="rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-medium px-5 py-2.5 shadow-sm transition text-sm active:scale-[0.98]">
+                    Publish Notice (BR-12)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL 3: Assign Replacement Bus (BR-12 & BR-13 Protocol) -->
+<div id="replaceModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden">
+        <div class="p-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h3 class="font-semibold text-base tracking-tight text-slate-900">Assign Replacement Bus</h3>
+                <p id="replaceModalSubtitle" class="text-xs text-slate-500 font-mono mt-0.5"></p>
+            </div>
+            <button type="button" onclick="closeReplaceModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-lg leading-none transition">&times;</button>
+        </div>
+
+        <form id="replaceForm" method="post" class="p-6 space-y-4">
+            <div class="bg-amber-50/80 rounded-2xl p-3.5 text-xs text-amber-900">
+                <strong class="font-semibold">BR-12 &amp; BR-13 Mandates:</strong>
+                <p class="mt-1">Disruption threshold (&gt;60m) exceeded. The selected replacement bus capacity must be &ge; current passenger reservations.</p>
+                <div id="replaceModalDelayInfo" class="mt-2 text-amber-800 font-semibold font-mono text-xs"></div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Select Replacement Bus (Active Only)</label>
+                <select name="newBusId" class="w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 px-4 py-2.5 text-sm text-slate-900" required>
+                    <option value="" disabled selected>-- Select replacement bus --</option>
+                    <option th:each="b : ${buses}" th:value="${b.busId}"
+                            th:text="${b.registrationNo + ' - ' + b.model + ' (' + b.seatCapacity + ' seats)'}"></option>
+                </select>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-3">
+                <button type="button" onclick="closeReplaceModal()" class="rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium px-4 py-2.5 transition text-sm">
+                    Cancel
+                </button>
+                <button type="submit" class="rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-medium px-5 py-2.5 shadow-sm transition text-sm active:scale-[0.98]">
+                    Confirm Replacement (BR-13)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAssignModal(tripId, routeName) {
+        document.getElementById('assignModalSubtitle').innerText = 'Trip #' + tripId + ' &bull; ' + routeName;
+        document.getElementById('assignForm').action = '/operations/trips/' + tripId + '/assign';
+        document.getElementById('assignModal').classList.remove('hidden');
+    }
+
+    function closeAssignModal() {
+        document.getElementById('assignModal').classList.add('hidden');
+    }
+
+    function openDelayModal(tripId, routeName) {
+        document.getElementById('delayModalSubtitle').innerText = 'Trip #' + tripId + ' &bull; ' + routeName;
+        document.getElementById('delayForm').action = '/operations/trips/' + tripId + '/delay';
+        document.getElementById('delayModal').classList.remove('hidden');
+    }
+
+    function closeDelayModal() {
+        document.getElementById('delayModal').classList.add('hidden');
+    }
+
+    function openReplaceBusModal(tripId, routeName, currentBus, delayMins) {
+        document.getElementById('replaceModalSubtitle').innerText = 'Trip #' + tripId + ' &bull; ' + routeName;
+        document.getElementById('replaceModalDelayInfo').innerText = 'Disruption: ' + delayMins + 'm delay &bull; Current Bus: ' + currentBus;
+        document.getElementById('replaceForm').action = '/operations/trips/' + tripId + '/replace';
+        document.getElementById('replaceModal').classList.remove('hidden');
+    }
+
+    function closeReplaceModal() {
+        document.getElementById('replaceModal').classList.add('hidden');
+    }
+</script>
+
+</body>
+</html>
